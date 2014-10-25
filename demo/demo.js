@@ -1,5 +1,14 @@
 var app = angular.module('demo', ['ngWebworker']);
 
+app.config(function($provide) {
+    $provide.decorator('WebworkerConfig', function($delegate) {
+        $delegate.workerPath = "/angular/ng-webworker/src/worker_wrapper.js";
+        $delegate.useHelper = false;
+
+        return $delegate;
+    });
+});
+
 
 app.controller('demoCtrl', function($scope, $q, Webworker) {
     var defaultImage = "grays_hike.jpg";
@@ -42,8 +51,8 @@ app.controller('demoCtrl', function($scope, $q, Webworker) {
                 iCalls = 0;
             while (iNotices--) {
                 setTimeout(function() {
-                    notify(iCalls);
-                    if (++iCalls == iFinished) {
+                    notify(++iCalls);
+                    if (iCalls == iFinished) {
                         complete(iCalls);
                         console.log('done');
                     }
@@ -59,32 +68,48 @@ app.controller('demoCtrl', function($scope, $q, Webworker) {
         myWorker.run(500, $scope.value).then(function(result) {
             $scope.asyncDone = true;
         }, null, function(progress) {
-            $scope.asyncProgress = progress / $scope.value * 100;
+            console.log(progress);
+            $scope.asyncProgress = progress / ($scope.value) * 100;
         });
     };
 
+    var imageWorker;
     $scope.blurImage = function() {
-        var myWorker = Webworker.create(gaussianBlur),
-            canvas = document.createElement('canvas'),
-            context = canvas.getContext('2d');
+        var canvas = document.createElement('canvas'),
+            context = canvas.getContext('2d'),
+            dStart = new Date();
+
+        imageWorker = Webworker.create(gaussianBlur)
 
         $scope.imageProgress = 0;
         $scope.imageDone = false;
 
         getImage(canvas, context).then(function(imageData) {
-            myWorker.run(imageData, $scope.value / 5).then(function(result) {
+            imageWorker.run(imageData, $scope.value / 5).then(function(result) {
                 context.putImageData(result, 0, 0);
                 $scope.image = canvas.toDataURL();
                 $scope.imageProgress = 100;
                 $scope.imageDone = true;
+                imageWorker = null;
+                $scope.iImageTime = ((new Date()) - dStart) / 1000;
             }, null, function(progress) {
                 $scope.imageProgress = progress;
+            }).catch(function(oError) {
+                imageWorker = null;
+                console.log(oError);
+                alert("stopped");
             });
         });
     };
 
     $scope.resetImage = function() {
         $scope.image = defaultImage;
+    };
+
+    $scope.stopImage = function() {
+        if (imageWorker) {
+            imageWorker.stop();
+        }
     };
 
     function getImage(canvas, context) {
@@ -111,6 +136,8 @@ app.controller('demoCtrl', function($scope, $q, Webworker) {
 // I wrote this function a long time ago, so don't hate me.
 function gaussianBlur(imageData, radius) {
     console.log('start');
+    //http://haishibai.blogspot.com/2009/09/image-processing-c-tutorial-4-gaussian.html
+    //http://dev.theomader.com/gaussian-kernel-calculator/
     function gaussianKernel(deviation, maxSize) {
         function roundTo(num, decimals) {
             var shift = Math.pow(10, decimals);

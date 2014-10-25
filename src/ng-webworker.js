@@ -15,42 +15,69 @@
 
     var oWebworkerModule = angular.module('ngWebworker', []),
         CONST_FUNCTION = "function",
-        CONST_RETURN = "return";
+        CONST_RETURN = "return",
+        CONST_COMPLETE = "complete",
+        CONST_NOTICE = "notice";
 
-    oWebworkerModule.service('Webworker', ['$q', function($q) {
+    oWebworkerModule.config(['$provide', function($provide) {
+        $provide.value('WebworkerConfig', {
+            "workerPath": "worker_wrapper.js",
+            "useHelper": false
+        });
+    }]);
+
+
+    oWebworkerModule.service('Webworker', ['$q', 'WebworkerConfig', function($q, WebworkerConfig) {
         this.create = function(worker, config) {
-            var URL = window.URL || window.webkitURL,
+            var win = window,
+                URL = win.URL || win.webkitURL,
                 aFuncParts,
                 strWorker,
                 blob,
                 retWorker;
             config = config || {};
 
-            if (Worker && URL && URL.createObjectURL && (Blob || BlobBuilder || WebKitBlobBuilder || MozBlobBuilder)) {
+            config = angular.extend({
+                useHelper: WebworkerConfig.useHelper
+            }, config);
+
+
+            // stupid IE thinks Blob Webworkers violate same-origin
+            if (navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0) {
+                config.useHelper = true;
+            }
+
+            if (Worker && URL && URL.createObjectURL && (Blob || win.BlobBuilder || win.WebKitBlobBuilder || win.MozBlobBuilder)) {
                 if (typeof worker == CONST_FUNCTION) {
-                    aFuncParts = /function\s*(\w+)(.*)/.exec(worker.toString());
-                    strWorker = worker.toString();
+                    config.external = false;
+                    if (!config.useHelper) {
+                        aFuncParts = /function\s*(\w+)(.*)/.exec(worker.toString());
+                        strWorker = worker.toString();
 
-                    strWorker += "onmessage=function(e){" +
-                        "postMessage({type:'"+ CONST_RETURN +"', data:" + aFuncParts[1] + ".apply(null,e.data)})" +
-                        "};";
+                        strWorker += "onmessage=function(e){" +
+                            "postMessage({type:'"+ CONST_RETURN +"', data:" + aFuncParts[1] + ".apply(null,e.data)})" +
+                            "};";
 
-                    if (typeof Blob === CONST_FUNCTION) {
-                        blob = new Blob([complete, notify, strWorker], {type: 'application/javascript'});
-                    } else if (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder) { // Backwards-compatibility
-                        // WARNING: This isn't tested well because I can can't find any
-                        //          other browser other than PhantomJS to test with
-                        window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
-                        blob = new BlobBuilder();
-                        blob.append(complete);
-                        blob.append(notify);
-                        blob.append(strWorker);
-                        blob = blob.getBlob();
+                        if (typeof win.Blob === CONST_FUNCTION) {
+                            blob = new Blob([complete, notify, strWorker], {type: 'application/javascript'});
+                        } else if (win.BlobBuilder || win.WebKitBlobBuilder || win.MozBlobBuilder || win.MSBlobBuilder) { // Backwards-compatibility
+                            // WARNING: This isn't tested well because I can can't find any
+                            //          other browser other than PhantomJS to test with
+                            win.BlobBuilder = win.BlobBuilder || win.WebKitBlobBuilder || win.MozBlobBuilder || win.MSBlobBuilder;
+                            blob = new BlobBuilder();
+                            blob.append(complete);
+                            blob.append(notify);
+                            blob.append(strWorker);
+                            blob = blob.getBlob();
+                        }
                     }
 
-                    // stupid IE thinks Blob Webworkers violate same-origin
                     try {
-                        retWorker = new WebworkerGenerator(URL.createObjectURL(blob), config);
+                        if (config.useHelper) {
+                            retWorker = new WebworkerGenerator(worker.toString(), config);
+                        } else {
+                            retWorker = new WebworkerGenerator(URL.createObjectURL(blob), config);
+                        }
                     } catch(e) {}
 
                 } else {
@@ -68,10 +95,18 @@
 
         function WebworkerGenerator(worker, config) {
             var noop = function() {};
-            this.oWorker = new Worker(worker);
+
+            if (config.external || !config.useHelper) {
+                this.oWorker = new Worker(worker);
+            } else {
+                this.oWorker = new Worker(WebworkerConfig.workerPath);
+                this.strWorkerFunc = worker;
+            }
+
             // setup default events so they will always be there
             this.config = angular.extend({
                 onMessage: noop,
+                onError: noop,
                 onReturn: noop,
                 onComplete: noop,
                 onNotice: noop
@@ -80,9 +115,11 @@
             // support webworker lowercase style
             if (config.onmessage) {
                 this.config.onMessage = config.onmessage;
+                this.config.onError = config.onerror;
             }
         }
 
+        //TODO: save copy of promise/worker pair so we can terminate
         WebworkerGenerator.prototype.run = function() {
             var oDeferred = $q.defer(),
                 self = this;
@@ -96,18 +133,21 @@
                 } else {
                     oData = oEvent.data.data;
 
-                    oDeferred.notify(oData);
-                    self.config.onMessage(oData);
+                    // don't notify if we are complete
+                    if (strType != "complete") {
+                        oDeferred.notify(oData);
+                    }
+                    self.config.onMessage(oEvent);
 
                     if (strType == CONST_RETURN) {
                         if (!self.config.async) {
                             oDeferred.resolve(oData);
                         }
                         self.config.onReturn(oData);
-                    } else if (strType == "complete") {
+                    } else if (strType == CONST_COMPLETE) {
                         oDeferred.resolve(oData);
                         self.config.onComplete(oData);
-                    } else if (strType == "notice") {
+                    } else if (strType == CONST_NOTICE) {
                         self.config.onNotice(oData);
                     }
                 }
@@ -117,10 +157,23 @@
                 oDeferred.reject(oError);
             };
 
-            //FUTURE: Use Array.slice(arguments) when available for V8 optimization
-            this.oWorker.postMessage(Array.prototype.slice.call(arguments));
+            if (self.config.external || !self.config.useHelper) {
+                //FUTURE: Use Array.slice(arguments) when available for V8 optimization
+                this.oWorker.postMessage(Array.prototype.slice.call(arguments));
+            } else {
+                //FUTURE: Use Array.slice(arguments) when available for V8 optimization
+                this.oWorker.postMessage({
+                    fn: self.strWorkerFunc,
+                    args: Array.prototype.slice.call(arguments)
+                });
+            }
 
             return oDeferred.promise;
+        };
+
+        WebworkerGenerator.prototype.stop = function() {
+            this.oWorker.onerror(new Error('stopped'));
+            this.oWorker.terminate();
         };
 
         function complete(mVal) {

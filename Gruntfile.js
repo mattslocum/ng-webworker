@@ -40,7 +40,8 @@ module.exports = function(grunt) {
                     preserveComments: "some"
                 },
                 files: {
-                    'src/ng-webworker.min.js': ['src/ng-webworker.js']
+                    'src/ng-webworker.min.js': ['src/ng-webworker.js'],
+                    'src/worker_wrapper.min.js': ['src/worker_wrapper.js']
                 }
             }
         }

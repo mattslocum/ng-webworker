@@ -7,7 +7,7 @@ requirejs.config({
     // Karma serves files from '/base'
     baseUrl: '/base',
     paths: {
-        "src/ng-webworker": "src/ng-webworker",
+        "src/ng-webworker": "src/ng-webworker.min",
         "angularjs": "http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min",
         "angular-mocks": "http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-mocks"
     },

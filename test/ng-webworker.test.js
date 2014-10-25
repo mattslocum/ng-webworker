@@ -9,12 +9,21 @@ define([
     "angular-mocks"
 ], function(ngWebworker) {
     'use strict';
+    // uncomment to make it easier to debug
 //    jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
 
     describe("ngWebworker", function() {
         var Webworker, $q, $rootScope;
 
         beforeEach(function() {
+            angular.module('ngWebworker').config(function($provide) {
+                $provide.decorator('WebworkerConfig', function($delegate) {
+                    $delegate.workerPath = "/base/src/worker_wrapper.min.js";
+                    $delegate.useHelper = true;
+                    return $delegate;
+                });
+            });
+
             // needed before inject()
             module('ngWebworker');
         });

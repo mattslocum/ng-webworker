@@ -18,13 +18,12 @@ module.exports = function(grunt) {
                         'karma-requirejs'
                     ],
                     files: [
-//                        'src/ng-webworker.js',
-                        {pattern: "src/ng-webworker.js", included: false},
-                        {pattern: "src/ng-webworker.min.js", included: false},
+                        {pattern: "src/*.js", included: false},
                         {pattern: "test/**/*.test.js", included: false},
+                        {pattern: "test/**/worker.*.js", included: false},
                         'test/config.main.js'
                     ],
-//                    browsers: ['PhantomJS'],
+                    browsers: ['PhantomJS'],
                     logLevel: 'INFO', //DEBUG
                     background: false
                 }

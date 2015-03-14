@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Ng-webworker by mattslocum</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Ng-webworker</h1>
+          <h2>Angular web worker</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/mattslocum/ng-webworker/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/mattslocum/ng-webworker/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/mattslocum/ng-webworker" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a id="ng-webworker" class="anchor" href="#ng-webworker" aria-hidden="true"><span class="octicon octicon-link"></span></a>ng-webworker</h1>
+
+<p><a href="https://github.com/mattslocum/ng-webworker">https://github.com/mattslocum/ng-webworker</a></p>
+
+<h3>
+<a id="installation-for-testing" class="anchor" href="#installation-for-testing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation for Testing</h3>
+
+<pre><code>npm install
+</code></pre>
+
+<h3>
+<a id="run-tests" class="anchor" href="#run-tests" aria-hidden="true"><span class="octicon octicon-link"></span></a>Run Tests</h3>
+
+<pre><code>grunt karma
+</code></pre>
+
+<h3>
+<a id="build" class="anchor" href="#build" aria-hidden="true"><span class="octicon octicon-link"></span></a>Build</h3>
+
+<pre><code>grunt uglify
+</code></pre>
+
+<h1>
+<a id="using-ng-webworker" class="anchor" href="#using-ng-webworker" aria-hidden="true"><span class="octicon octicon-link"></span></a>Using ng-webworker</h1>
+
+<h2>
+<a id="basic-usage" class="anchor" href="#basic-usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Basic Usage</h2>
+
+<h3>
+<a id="include-the-module" class="anchor" href="#include-the-module" aria-hidden="true"><span class="octicon octicon-link"></span></a>Include the module</h3>
+
+<div class="highlight highlight-javascript"><pre>angular.module(<span class="pl-s1"><span class="pl-pds">'</span>demo<span class="pl-pds">'</span></span>, [<span class="pl-s1"><span class="pl-pds">'</span>ngWebworker<span class="pl-pds">'</span></span>])
+    .controller(<span class="pl-s1"><span class="pl-pds">'</span>demoCtrl<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">$scope</span>, <span class="pl-vpf">Webworker</span>) {});</pre></div>
+
+<h3>
+<a id="create-a-basic-worker" class="anchor" href="#create-a-basic-worker" aria-hidden="true"><span class="octicon octicon-link"></span></a>Create a basic worker</h3>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// function that will become a worker</span>
+<span class="pl-st">function</span> <span class="pl-en">doubler</span>(<span class="pl-vpf">num</span>) {
+    <span class="pl-c">// the return value becomes the resolve of the promise</span>
+    <span class="pl-k">return</span> num <span class="pl-k">*</span> <span class="pl-c1">2</span>;
+}
+
+<span class="pl-s">var</span> myWorker <span class="pl-k">=</span> Webworker.create(doubler);</pre></div>
+
+<h3>
+<a id="call-the-worker-function" class="anchor" href="#call-the-worker-function" aria-hidden="true"><span class="octicon octicon-link"></span></a>call the worker function</h3>
+
+<div class="highlight highlight-javascript"><pre>myWorker.run($scope.<span class="pl-sc">value</span>).then(<span class="pl-st">function</span>(<span class="pl-vpf">result</span>) {
+    <span class="pl-s3">alert</span>(<span class="pl-s1"><span class="pl-pds">"</span>Answer: <span class="pl-pds">"</span></span> <span class="pl-k">+</span> result);
+});</pre></div>
+
+<h2>
+<a id="create-an-advanced-worker" class="anchor" href="#create-an-advanced-worker" aria-hidden="true"><span class="octicon octicon-link"></span></a>Create an advanced worker</h2>
+
+<h3>
+<a id="async-notification-promises" class="anchor" href="#async-notification-promises" aria-hidden="true"><span class="octicon octicon-link"></span></a>Async (notification) promises</h3>
+
+<p>Lets say you want the notification support for webworkers for things like progress bars. There are times you do not want the return value to resolve the function. Maybe you are doing api requests or some other async tasks. An api of two functions is injected into the web worker. If an error is thrown, it will reject.</p>
+
+<ul>
+<li>complete - This will resolve the promise</li>
+<li>notify - Send a notification of data via the promise</li>
+</ul>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// function that will become a worker</span>
+<span class="pl-st">function</span> <span class="pl-en">async</span>(<span class="pl-vpf">first</span>, <span class="pl-vpf">second</span>) {
+    <span class="pl-c">// api to send a promise notification</span>
+    notify(first);
+    <span class="pl-c">// api to resolve the promise. Note: according to the $q spec, </span>
+    <span class="pl-c">// a promise cannot be used once it has been resolved or rejected.</span>
+    complete(second);
+}
+
+<span class="pl-c">// mark this worker as one that supports async notifications</span>
+<span class="pl-s">var</span> myWorker <span class="pl-k">=</span> Webworker.create(async, {async<span class="pl-k">:</span> <span class="pl-c1">true</span> });
+
+<span class="pl-c">// uses the native [$q style notification](https://docs.angularjs.org/api/ng/service/$q)</span>
+myWorker.run(<span class="pl-c1">1</span>, <span class="pl-c1">2</span>).then(<span class="pl-st">function</span>(<span class="pl-vpf">result</span>) {
+    <span class="pl-c">// promise is resolved.</span>
+    <span class="pl-s3">alert</span>(<span class="pl-s1"><span class="pl-pds">'</span>done<span class="pl-pds">'</span></span>);
+}, <span class="pl-c1">null</span>, <span class="pl-st">function</span>(<span class="pl-vpf">progress</span>) {
+    <span class="pl-c">// promise has a notification</span>
+    <span class="pl-en">console</span><span class="pl-s3">.log</span>(progress);
+);</pre></div>
+
+<h3>
+<a id="extra-config" class="anchor" href="#extra-config" aria-hidden="true"><span class="octicon octicon-link"></span></a>Extra config</h3>
+
+<p>If you want callback style functions on top of the promise or as an alternative style, you can pass callbacks into the config block. These callbacks only work if async is true. When async is false it uses basic resolves when the function returns.</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> myWorker <span class="pl-k">=</span> Webworker.create(async, {
+    async<span class="pl-k">:</span> <span class="pl-c1">true</span>, <span class="pl-c">// prevent the function return from resolving the promise</span>
+    useHelper<span class="pl-k">:</span> <span class="pl-c1">true</span>/<span class="pl-c1">false</span>, <span class="pl-c">// defaults to false for most browsers. defaults to true for IE.</span>
+    <span class="pl-en">onMessage</span>: <span class="pl-st">function</span>(<span class="pl-vpf">event</span>) {}, <span class="pl-c">// every event from the worker fires this when async:true</span>
+    <span class="pl-en">onError</span>: <span class="pl-st">function</span>(<span class="pl-vpf">event</span>) {}, <span class="pl-c">// error event from the worker</span>
+    <span class="pl-en">onReturn</span>: <span class="pl-st">function</span>(<span class="pl-vpf">data</span>) {}, <span class="pl-c">// return value from the function</span>
+    <span class="pl-en">onComplete</span>: <span class="pl-st">function</span>(<span class="pl-vpf">data</span>) {}, <span class="pl-c">// data from complete/resolve function</span>
+    <span class="pl-en">onNotice</span>: <span class="pl-st">function</span>(<span class="pl-vpf">data</span>) {} <span class="pl-c">// data from notice function</span>
+});</pre></div>
+
+<h3>
+<a id="ie-workarounds" class="anchor" href="#ie-workarounds" aria-hidden="true"><span class="octicon octicon-link"></span></a>IE workarounds</h3>
+
+<p>IE strikes again. The way ng-webwork can take a function and turn it into a webworker is by transforming your function into a Blob and executing that blob in a web worker like you would an independant file. Unfortunatly, IE treats blobs as cross domain. The solution is to have a worker shell file that is loaded as a separate file. Your function is strigified and then messaged over to the worker file and evaled to make it behave just like the blobs did. </p>
+        </section>
+
+        <footer>
+          Ng-webworker is maintained by <a href="https://github.com/mattslocum">mattslocum</a><br>
+          This page was generated by <a href="https://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>

@@ -54,18 +54,15 @@
                     transferable = function _transferable_(messageData) {
                         var messageDataTransfers = [];
 
-                        // _async_ is defined within the scope of the worker
-                        if (!_async_) {
-                            if (toString.apply(messageData) != '[object Array]') {
-                                messageData = [messageData];
-                            }
-
-                            messageData.forEach(function (data) {
-                                if (data instanceof ArrayBuffer) {
-                                    messageDataTransfers.push(data);
-                                }
-                            });
+                        if (toString.apply(messageData) != '[object Array]') {
+                            messageData = [messageData];
                         }
+
+                        messageData.forEach(function (data) {
+                            if (data instanceof ArrayBuffer) {
+                                messageDataTransfers.push(data);
+                            }
+                        });
 
                         return messageDataTransfers;
                     }
@@ -97,7 +94,7 @@
                             strWorker += ";onmessage=function(e){" +
                                 ";var result = " + aFuncParts[1] + ".apply(null,e.data);" +
                                 // lets just try to make it transferable
-                                "postMessage(['"+ CONST_RETURN +"', result], _transferable_(result))" +
+                                "postMessage(['"+ CONST_RETURN +"', result], !_async_ ? _transferable_(result) : [])" +
                             "};";
 
                             // add async and transferable function to worker
@@ -270,8 +267,7 @@
                 postMessage(["complete", mVal], _transferable_(mVal))
             }
             function notify(mVal) {
-                // _transferable_ is added to the worker
-                postMessage(["notice", mVal], _transferable_(mVal))
+                postMessage(["notice", mVal])
             }
         }
 

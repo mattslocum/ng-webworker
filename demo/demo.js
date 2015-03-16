@@ -1,12 +1,8 @@
 var app = angular.module('demo', ['ngWebworker']);
 
-app.config(function($provide) {
-    $provide.decorator('WebworkerConfig', function($delegate) {
-        $delegate.workerPath = "/angular/ng-webworker/src/worker_wrapper.js";
-        $delegate.useHelper = false;
-
-        return $delegate;
-    });
+app.config(function(WebworkerProvider) {
+    WebworkerProvider.setHelperPath("/angular/ng-webworker/src/worker_wrapper.js");
+//    WebworkerProvider.setUseHelper(true);
 });
 
 
@@ -46,7 +42,8 @@ app.controller('demoCtrl', function($scope, $q, Webworker) {
     };
 
     $scope.asyncWorker = function() {
-        function async(iTime, iNotices) {
+        function async(d) {
+            var iTime = d.time, iNotices = d.notices;
             var iFinished = iNotices,
                 iCalls = 0;
             while (iNotices--) {
@@ -60,17 +57,19 @@ app.controller('demoCtrl', function($scope, $q, Webworker) {
             }
         }
 
-        var myWorker = Webworker.create(async, {async: true });
+        var myWorker = Webworker.create(async, {async: true }),
+            data = {time: 500, notices: $scope.value};
 
         $scope.asyncProgress = 0;
         $scope.asyncDone = false;
 
-        myWorker.run(500, $scope.value).then(function(result) {
+        myWorker.run(data).then(function(result) {
             $scope.asyncDone = true;
         }, null, function(progress) {
             console.log(progress);
             $scope.asyncProgress = progress / ($scope.value) * 100;
         });
+        console.log(data);
     };
 
     var imageWorker;
@@ -79,7 +78,7 @@ app.controller('demoCtrl', function($scope, $q, Webworker) {
             context = canvas.getContext('2d'),
             dStart = new Date();
 
-        imageWorker = Webworker.create(gaussianBlur)
+        imageWorker = Webworker.create(gaussianBlur);
 
         $scope.imageProgress = 0;
         $scope.imageDone = false;

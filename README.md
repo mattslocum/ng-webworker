@@ -1,4 +1,5 @@
 #ng-webworker
+demo and more instructions: [http://mattslocum.github.io/ng-webworker/](http://mattslocum.github.io/ng-webworker/)
 
 ###Installation for Testing
 
@@ -60,7 +61,7 @@ function async(first, second) {
 // mark this worker as one that supports async notifications
 var myWorker = Webworker.create(async, {async: true });
 
-// uses the native [$q style notification](https://docs.angularjs.org/api/ng/service/$q)
+// uses the native $q style notification: https://docs.angularjs.org/api/ng/service/$q
 myWorker.run(1, 2).then(function(result) {
     // promise is resolved.
     alert('done');
@@ -71,6 +72,17 @@ myWorker.run(1, 2).then(function(result) {
 ```
 
 ### Extra config
+#### Global config
+```javascript
+angular.module('ngWebworker').config(function(WebworkerProvider) {
+    WebworkerProvider.setHelperPath("/base/src/worker_wrapper.js");
+    WebworkerProvider.setUseHelper(false);
+    // transfer ownership doesn't work with the worker_wrapper helper
+    WebworkerProvider.setTransferOwnership(true);
+});
+```
+
+#### Instance Config
 If you want callback style functions on top of the promise or as an alternative style, you can pass callbacks into the config block. These callbacks only work if async is true. When async is false it uses basic resolves when the function returns.
 ```javascript
 var myWorker = Webworker.create(async, {
@@ -85,6 +97,5 @@ var myWorker = Webworker.create(async, {
 ```
 
 ### IE workarounds
-IE strikes again. The way ng-webwork can take a function and turn it into a webworker is by transforming your function into a Blob and executing that blob in a web worker like you would an independant file. Unfortunatly, IE treats blobs as cross domain. The solution is to have a worker shell file that is loaded as a separate file. Your function is strigified and then messaged over to the worker file and evaled to make it behave just like the blobs did. 
-
+IE strikes again. The way ng-webworker can take a function and turn it into a webworker is by transforming your function into a Blob and executing that blob in a web worker like you would an independant file. Unfortunatly, IE treats blobs as cross domain. The solution is to have a worker shell file that is loaded as a separate file. Your function is strigified and then messaged over to the worker file and evaled to make it behave just like the blobs did.
 

@@ -4,9 +4,9 @@ onmessage = function (oEvent) {
             iCalls = 0;
         while (iNotices--) {
             setTimeout(function() {
-                postMessage({type:'notice', data:iCalls});
+                postMessage(['notice', iCalls]);
                 if (++iCalls == iFinished) {
-                    postMessage({type:'complete', data:iCalls});
+                    postMessage(['complete', iCalls]);
                 }
             }, iTime * (iNotices + 1));
         }

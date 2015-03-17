@@ -1,0 +1,15 @@
+{
+  "name": "ng-webworker",
+  "version": "0.2.0",
+  "homepage": "http://mattslocum.github.io/ng-webworker/",
+  "main": "src/ng-webworker.js",
+  "ignore": [
+    "demo",
+    "test",
+    ".gititnore",
+    "Gruntfile.js",
+    "karma.conf.js",
+    "package.json"
+  ],
+  "license": "MIT"
+}

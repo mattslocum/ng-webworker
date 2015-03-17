@@ -11,5 +11,13 @@
     "karma.conf.js",
     "package.json"
   ],
+  "keywords": [
+    "angular",
+    "web worker",
+    "webworker",
+    "ng-webworker",
+    "thread",
+    "parallel"
+  ],
   "license": "MIT"
 }

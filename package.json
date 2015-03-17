@@ -1,6 +1,7 @@
 {
   "name": "ng-webworker",
   "version": "0.2.0",
+  "description": "ng-webworker creates dynamic webworkers so angular apps can be multi-threaded.",
   "devDependencies": {
     "grunt": "~0.4.4",
     "grunt-karma": "0.8.0",
@@ -10,5 +11,14 @@
     "karma-junit-reporter": "0.2.1",
     "karma-phantomjs-launcher": "0.1.4",
     "requirejs": "~2.1.15"
-  }
+  },
+  "license": "MIT",
+  "keywords": [
+    "angular",
+    "web worker",
+    "webworker",
+    "ng-webworker",
+    "thread",
+    "parallel"
+  ]
 }

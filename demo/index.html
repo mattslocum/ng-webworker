@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>ng-webworker demo</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"/>
+
+    <script type="application/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+    <script type="application/javascript" src="../bower_components/ng-webworker/src/ng-webworker.js"></script>
+    <script type="application/javascript" src="demo.js"></script>
+
+</head>
+<body data-ng-app="demo">
+
+<div class="navbar navbar-inverse " role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a href="../"><span class="navbar-brand">ng-webworker</span></a>
+        </div>
+    </div>
+</div>
+
+<div class="container form-inline" data-ng-controller="demoCtrl">
+    <div class="jumbotron">
+        <h1>ng-webworker</h1>
+        <p>Webworkers are the perfect way to do any processor intensive or slow operation in order to not lock up the user's browser. This library angularizes web workers</p>
+    </div>
+
+
+    <div class="page-header">
+        <h2>The non-angular way (pure js)</h2>
+    </div>
+    <h4>browser code</h4>
+    <pre>
+var myWorker = new Worker("doubler.js");
+
+myWorker.onmessage = function (oEvent) {
+    alert("Answer: " + oEvent.data);
+};
+
+myWorker.postMessage($scope.value); // start the worker.
+    </pre>
+    <h4>doubler.js (worker code)</h4>
+    <pre>
+self.onmessage = function (oEvent) {
+    self.postMessage(oEvent.data * 2);
+};
+    </pre>
+    <p><input type="text" class="form-control" data-ng-model="value"/> <button type="button" class="btn btn-primary" data-ng-click="pureJSWorker()">Double it</button></p>
+    <p>While this might be still occasionally necessary, it is a pain to create new files in order to get asynchronous, multi-thread execution. Often times it is only a function or a few functions that need to be run in a new thread.</p>
+
+
+    <div class="page-header">
+        <h1>ng-webworker way</h1>
+    </div>
+    <pre>
+angular.module('demo', ['ngWebworker'])
+    .controller('demoCtrl', function($scope, Webworker) {});
+    </pre>
+
+    <br/>
+    <h2>Simple function</h2>
+    <pre>
+function doubler(num) {
+    return num * 2;
+}
+
+var myWorker = Webworker.create(doubler);
+
+myWorker.run($scope.value).then(function(result) {
+    alert("Answer: " + result);
+});
+    </pre>
+    <p><input type="text" class="form-control" data-ng-model="value"/> <button type="button" class="btn btn-primary" data-ng-click="functionWorker()">Double it</button></p>
+
+    <br/>
+    <h2>External file</h2>
+    <pre>
+var myWorker = Webworker.create("doubler.js");
+
+myWorker.run($scope.value).then(function(result) {
+    alert("Answer: " + result);
+});
+    </pre>
+    <p><input type="text" class="form-control" data-ng-model="value"/> <button type="button" class="btn btn-primary" data-ng-click="externalWorker()">Double it</button></p>
+
+
+    <br/>
+    <h2>Async function</h2>
+    <pre>
+function async(iTime, iNotices) {
+    var iFinished = iNotices,
+        iCalls = 0;
+    while (iNotices--) {
+        setTimeout(function() {
+            notify(++iCalls);
+            if (iCalls == iFinished) {
+                complete(iCalls);
+            }
+        }, iTime * (iNotices + 1));
+    }
+}
+
+$scope.asyncProgress = 0;
+$scope.asyncDone = false;
+
+var myWorker = Webworker.create(async, {async: true });
+
+myWorker.run(500, $scope.value).then(function(result) {
+    $scope.asyncDone = true;
+}, null, function(progress) {
+    $scope.asyncProgress = progress / ($scope.value) * 100;
+});
+    </pre>
+    <p><input type="text" class="form-control" data-ng-model="value"/> <button type="button" class="btn btn-primary" data-ng-click="asyncWorker()">Async it</button></p>
+    <div class="progress">
+        <div class="progress-bar" data-ng-class="{'progress-bar-striped': !asyncDone, active: !asyncDone, 'progress-bar-success': asyncDone }" data-ng-style="{'width': asyncProgress + '%'}">
+            <span ng-show="asyncDone">done</span>
+        </div>
+    </div>
+
+    <br/>
+    <h2>Image processing demo</h2>
+    <p><img data-ng-src="{{image}}"/></p>
+    <p><input type="text" class="form-control" data-ng-model="value"/> <button type="button" class="btn btn-primary" data-ng-click="blurImage()">Gaussian Blur Image</button> <button type="button" class="btn btn-default" data-ng-click="resetImage()">Reset Image</button> <button type="button" class="btn btn-default" data-ng-click="stopImage()">Stop</button></p>
+    <div class="progress">
+        <div class="progress-bar" data-ng-class="{'progress-bar-striped': !imageDone, active: !imageDone, 'progress-bar-success': imageDone }" data-ng-style="{'width': imageProgress + '%'}">
+            <span ng-show="imageDone">{{iImageTime}}</span>
+        </div>
+    </div>
+
+
+</div>
+</body>
+</html>

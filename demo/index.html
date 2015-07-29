@@ -135,6 +135,27 @@ myWorker.run(500, $scope.value).then(function(result) {
         </div>
     </div>
 
+    <br/>
+    <h2>RequireJS within webworker</h2>
+    <pre>
+$scope.requireDemo = function() {
+    var requireWorker = Webworker.create(requireSum, {async: true});
+
+    requireWorker.run($scope.numList.split(',')).then(function(result) {
+        alert(result);
+    });
+};
+
+function requireSum(array) {
+    importScripts("https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js");
+
+    require(['https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js'], function(_) {
+        return complete(_.sum(array));
+    });
+}
+    </pre>
+    <p><input type="text" class="form-control" ng-model="numList"/> <button type="button" class="btn btn-primary" ng-click="requireDemo()">Sum numbers</button></p>
+
 
 </div>
 

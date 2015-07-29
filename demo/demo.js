@@ -10,6 +10,7 @@ app.controller('demoCtrl', function($scope, $q, Webworker) {
     var defaultImage = "grays_hike.jpg";
     $scope.value = 5;
     $scope.image = defaultImage;
+    $scope.numList = "1,2,3,4,5";
 
     $scope.pureJSWorker = function() {
         var myWorker = new Worker("doubler.js");
@@ -118,6 +119,23 @@ app.controller('demoCtrl', function($scope, $q, Webworker) {
         img.src = defaultImage;
 
         return oDeffered.promise;
+    }
+
+
+    $scope.requireDemo = function() {
+        var requireWorker = Webworker.create(requireSum, {async: true});
+
+        requireWorker.run($scope.numList.split(',')).then(function(result) {
+            alert(result);
+        });
+    };
+
+    function requireSum(array) {
+        importScripts("https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js");
+
+        require(['https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js'], function(_) {
+            return complete(_.sum(array));
+        });
     }
 
 });

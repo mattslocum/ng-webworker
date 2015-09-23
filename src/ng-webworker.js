@@ -100,7 +100,7 @@
                             // add async and transferable function to worker
                             strWorker += "var _async_ = "+ config.async +";" + transferable.toString();
 
-                            if (typeof win.Blob === CONST_FUNCTION) {
+                            if (win.Blob) {
                                 blob = new Blob([complete, notify, strWorker], {type: 'application/javascript'});
                             } else if (win.BlobBuilder || win.WebKitBlobBuilder || win.MozBlobBuilder || win.MSBlobBuilder) { // Backwards-compatibility
                                 // WARNING: This isn't tested well because I can can't find any

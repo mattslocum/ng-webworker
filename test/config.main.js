@@ -2,6 +2,10 @@ var tests = Object.keys(window.__karma__.files).filter(function (strFile) {
     return /\.test\.js$/.test(strFile);
 });
 
+//Phantom doesn't handle window.Blob right, so we are going to set it to false
+if (window.navigator.userAgent.indexOf('PhantomJS') != -1) {
+    window.Blob = false;
+}
 
 requirejs.config({
     // Karma serves files from '/base'

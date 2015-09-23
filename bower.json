@@ -1,6 +1,6 @@
 {
   "name": "ng-webworker",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "ng-webworker creates dynamic webworkers so angular apps can be multi-threaded.",
   "homepage": "http://mattslocum.github.io/ng-webworker/",
   "main": "src/ng-webworker.js",

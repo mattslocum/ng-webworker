@@ -35,7 +35,7 @@ module.exports = function(grunt) {
                 options: {
                     compress: true,
                     mangle: {
-                        except: ['notify', 'complete']
+                        except: ['notify', 'complete', '_transferable_']
                     },
                     preserveComments: "some"
                 },

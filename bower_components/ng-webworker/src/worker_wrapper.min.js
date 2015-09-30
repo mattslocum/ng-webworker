@@ -1,5 +1,5 @@
 /**
- * @license ng-webworker v0.2
+ * @license ng-webworker v0.2.2
  * (c) 2014-2015 Matt Slocum
  * License: MIT
  */

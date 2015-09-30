@@ -1,5 +1,5 @@
 /**
- * @license ng-webworker v0.2
+ * @license ng-webworker v0.2.2
  * (c) 2014-2015 Matt Slocum
  * License: MIT
  */
@@ -49,24 +49,25 @@
                     aFuncParts,
                     strWorker,
                     blob,
-                    retWorker,
-                    // only use this function inside the webworker
-                    transferable = function _transferable_(messageData) {
-                        var messageDataTransfers = [];
+                    retWorker;
 
-                        if (toString.apply(messageData) != '[object Array]') {
-                            messageData = [messageData];
-                        }
+                // only use this function inside the webworker
+                function _transferable_ (messageData) {
+                    var messageDataTransfers = [];
 
-                        messageData.forEach(function (data) {
-                            if (data instanceof ArrayBuffer) {
-                                messageDataTransfers.push(data);
-                            }
-                        });
-
-                        return messageDataTransfers;
+                    if (toString.apply(messageData) != '[object Array]') {
+                        messageData = [messageData];
                     }
-                ;
+
+                    messageData.forEach(function (data) {
+                        if (data instanceof ArrayBuffer) {
+                            messageDataTransfers.push(data);
+                        }
+                    });
+
+                    return messageDataTransfers;
+                }
+
                 config = config || {};
 
                 config = angular.extend(
@@ -98,7 +99,7 @@
                             "};";
 
                             // add async and transferable function to worker
-                            strWorker += "var _async_ = "+ config.async +";" + transferable.toString();
+                            strWorker += "var _async_ = "+ config.async +";" + _transferable_.toString();
 
                             if (win.Blob) {
                                 blob = new Blob([complete, notify, strWorker], {type: 'application/javascript'});

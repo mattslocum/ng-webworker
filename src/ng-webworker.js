@@ -77,7 +77,10 @@
 
 
                 // stupid IE thinks Blob Webworkers violate same-origin
-                if (navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0) {
+                // stupid Edge thinks it's not IE
+                if (navigator.userAgent.indexOf('MSIE') !== -1 ||
+                    navigator.userAgent.indexOf('Edge') !== -1 ||
+                    navigator.appVersion.indexOf('Trident/') > 0) {
                     config.useHelper = true;
                 }
 

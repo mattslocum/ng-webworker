@@ -55,7 +55,7 @@
                 function _transferable_ (messageData) {
                     var messageDataTransfers = [];
 
-                    if (toString.apply(messageData) != '[object Array]') {
+                    if (Object.prototype.toString.apply(messageData) != '[object Array]') {
                         messageData = [messageData];
                     }
 

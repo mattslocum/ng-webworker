@@ -155,7 +155,7 @@
                 if (config.external || !config.useHelper) {
                     this.oWorker = new Worker(worker);
                 } else {
-                    this.oWorker = new Worker(WebworkerConfig.helperPath);
+                    this.oWorker = new Worker(config.helperPath);
                     this.strWorkerFunc = worker;
                 }
 

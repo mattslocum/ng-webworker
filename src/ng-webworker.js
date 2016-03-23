@@ -1,7 +1,7 @@
 /**
- * @license ng-webworker v0.2.2
- * (c) 2014-2015 Matt Slocum
- * License: MIT
+ * ng-webworker - ng-webworker creates dynamic webworkers so angular apps can be multi-threaded.
+ * @link https://github.com/mattslocum/ng-webworker
+ * @license MIT
  */
 !function (name, context, definition) {
     // CommonJS

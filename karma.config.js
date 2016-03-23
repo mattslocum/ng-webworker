@@ -1,5 +1,4 @@
 // Karma configuration
-// Generated on Thu Oct 02 2014 21:50:49 GMT+0000 (GMT)
 
 module.exports = function(config) {
   config.set({
@@ -15,6 +14,10 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'test/config.main.js',
+      {pattern: 'src/*.js', included: false},
+      {pattern: 'test/**/*.test.js', included: false},
+      {pattern: 'test/**/worker.*.js', included: false}
     ],
 
 
@@ -59,6 +62,10 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-    singleRun: false
+    singleRun: false,
+
+    // Concurrency level
+    // how many browser should be started simultaneous
+    concurrency: Infinity
   });
 };

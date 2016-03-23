@@ -1,6 +1,4 @@
 /**
- * @license ng-webworker v0.1.0
- * (c) 2014 Matt Slocum
  * License: MIT
  * Jasmine Tests
  */

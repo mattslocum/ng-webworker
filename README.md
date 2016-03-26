@@ -1,4 +1,4 @@
-#ng-webworker
+#ng-webworker [![Build Status](https://travis-ci.org/mattslocum/ng-webworker.svg?branch=master)](https://travis-ci.org/mattslocum/ng-webworker)
 demo and more instructions: [http://mattslocum.github.io/ng-webworker/](http://mattslocum.github.io/ng-webworker/)
 
 ###Installation for Testing
@@ -7,11 +7,11 @@ demo and more instructions: [http://mattslocum.github.io/ng-webworker/](http://m
 
 ###Run Tests
 
-    grunt karma
+    npm test
 
 ###Build
 
-    grunt uglify
+    npm run build
 
 
 #Using ng-webworker

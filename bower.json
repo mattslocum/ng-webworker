@@ -2,6 +2,6 @@
   "name": "ng-webworker page",
   "private": true,
   "dependencies": {
-    "ng-webworker": "~0.2.2"
+    "ng-webworker": "~0.2.3"
   }
 }

@@ -1,7 +1,7 @@
 /**
- * @license ng-webworker v0.2.2
- * (c) 2014-2015 Matt Slocum
- * License: MIT
+ * ng-webworker - ng-webworker creates dynamic webworkers so angular apps can be multi-threaded.
+ * @link https://github.com/mattslocum/ng-webworker
+ * @license MIT
  */
 !function (name, context, definition) {
     // CommonJS
@@ -55,7 +55,7 @@
                 function _transferable_ (messageData) {
                     var messageDataTransfers = [];
 
-                    if (toString.apply(messageData) != '[object Array]') {
+                    if (Object.prototype.toString.apply(messageData) != '[object Array]') {
                         messageData = [messageData];
                     }
 
@@ -77,7 +77,10 @@
 
 
                 // stupid IE thinks Blob Webworkers violate same-origin
-                if (navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0) {
+                // stupid Edge thinks it's not IE
+                if (navigator.userAgent.indexOf('MSIE') !== -1 ||
+                    navigator.userAgent.indexOf('Edge') !== -1 ||
+                    navigator.appVersion.indexOf('Trident/') > 0) {
                     config.useHelper = true;
                 }
 

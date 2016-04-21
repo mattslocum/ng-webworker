@@ -49,8 +49,9 @@
                     aFuncParts,
                     strWorker,
                     blob,
-                    retWorker;
-
+                    retWorker,
+                    aTransferableParts;
+                
                 // only use this function inside the webworker
                 function _transferable_ (messageData) {
                     var messageDataTransfers = [];
@@ -67,6 +68,7 @@
 
                     return messageDataTransfers;
                 }
+                aTransferableParts = /function\s*(\w*)(.*)/.exec(_transferable_.toString());
 
                 config = config || {};
 
@@ -98,7 +100,7 @@
                             strWorker += ";onmessage=function(e){" +
                                 ";var result = " + aFuncParts[1] + ".apply(null,e.data);" +
                                 // lets just try to make it transferable
-                                "postMessage(['"+ CONST_RETURN +"', result], !_async_ ? _transferable_(result) : [])" +
+                                "postMessage(['"+ CONST_RETURN +"', result], !_async_ ? "+aTransferableParts[1]+"(result) : [])" +
                             "};";
 
                             // add async and transferable function to worker

@@ -43,31 +43,40 @@
 
 
         function Webworker($q) {
+            var min_safe = {};
+
+            // only use these min_safe functions inside the webworker
+            min_safe._transferable_ = function(messageData) {
+                var messageDataTransfers = [];
+
+                if (Object.prototype.toString.apply(messageData) != '[object Array]') {
+                    messageData = [messageData];
+                }
+
+                messageData.forEach(function (data) {
+                    if (data instanceof ArrayBuffer) {
+                        messageDataTransfers.push(data);
+                    }
+                });
+
+                return messageDataTransfers;
+            };
+            min_safe.complete = function(mVal) {
+                // _transferable_ is added to the worker
+                postMessage(["complete", mVal], self._transferable_(mVal))
+            };
+            min_safe.notify = function(mVal) {
+                postMessage(["notice", mVal])
+            };
+
+
             this.create = function(worker, config) {
                 var win = window,
                     URL = win.URL || win.webkitURL,
                     aFuncParts,
                     strWorker,
                     blob,
-                    min_safe = {},
                     retWorker;
-
-                // only use this function inside the webworker
-                min_safe._transferable_ = function(messageData) {
-                    var messageDataTransfers = [];
-
-                    if (Object.prototype.toString.apply(messageData) != '[object Array]') {
-                        messageData = [messageData];
-                    }
-
-                    messageData.forEach(function (data) {
-                        if (data instanceof ArrayBuffer) {
-                            messageDataTransfers.push(data);
-                        }
-                    });
-
-                    return messageDataTransfers;
-                };
 
                 config = config || {};
 
@@ -103,17 +112,21 @@
                             "};";
 
                             // add async and transferable function to worker
-                            strWorker += "var _async_ = "+ config.async +";self._transferable_=" + min_safe._transferable_.toString();
+                            strWorker += "var _async_ = "+ config.async +";self._transferable_=" + min_safe._transferable_.toString() + ";";
 
                             if (win.Blob) {
-                                blob = new Blob([complete, notify, strWorker], {type: 'application/javascript'});
+                                blob = new Blob([
+                                    "self.complete=" + min_safe.complete.toString() + ";",
+                                    "self.notify=" + min_safe.notify.toString() + ";",
+                                    strWorker
+                                ], {type: 'application/javascript'});
                             } else if (win.BlobBuilder || win.WebKitBlobBuilder || win.MozBlobBuilder || win.MSBlobBuilder) { // Backwards-compatibility
                                 // WARNING: This isn't tested well because I can can't find any
                                 //          other browser other than PhantomJS to test with
                                 win.BlobBuilder = win.BlobBuilder || win.WebKitBlobBuilder || win.MozBlobBuilder || win.MSBlobBuilder;
                                 blob = new BlobBuilder();
-                                blob.append(complete);
-                                blob.append(notify);
+                                blob.append("self.complete=" + min_safe.complete.toString() + ";");
+                                blob.append("self.notify=" + min_safe.notify.toString() + ";");
                                 blob.append(strWorker);
                                 blob = blob.getBlob();
                             }
@@ -265,14 +278,6 @@
                 }
 
                 return messageDataTransfers;
-            }
-
-            function complete(mVal) {
-                // _transferable_ is added to the worker
-                postMessage(["complete", mVal], self._transferable_(mVal))
-            }
-            function notify(mVal) {
-                postMessage(["notice", mVal])
             }
         }
 

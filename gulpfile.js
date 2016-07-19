@@ -5,8 +5,6 @@ var uglify = require('gulp-uglify');
 var rename = require("gulp-rename");
 
 
-gulp.task('default', ['watch']);
-
 gulp.task('build', function(done) {
     var pkg = require('./package.json');
     var banner = [
@@ -19,11 +17,7 @@ gulp.task('build', function(done) {
         ''].join('\n');
     
     return gulp.src(['src/ng-webworker.js', 'src/worker_wrapper.js'])
-        .pipe(uglify({
-            mangle: {
-                except: ['notify', 'complete', '_transferable_']
-            }
-        }))
+        .pipe(uglify())
         .pipe(header(banner, { pkg : pkg } ))
         .pipe(rename({
             suffix: ".min"

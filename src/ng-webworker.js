@@ -90,7 +90,7 @@
                         config.external = false;
                         if (!config.useHelper) {
                             aFuncParts = /function\s*(\w*)(.*)/.exec(worker.toString());
-                            aFuncParts[1] = aFuncParts[1] || "a"; // give unnamed functions a name.
+                            aFuncParts[1] = aFuncParts[1] || "__user_func__"; // give unnamed functions a name.
 
                             // reconstruct function signature
                             strWorker = "function " + aFuncParts[1] + aFuncParts[2];

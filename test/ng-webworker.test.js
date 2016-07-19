@@ -14,12 +14,11 @@ define([
         var Webworker, $q, $rootScope;
 
         beforeEach(function() {
-            angular.module('ngWebworker').config(function(WebworkerProvider) {
-                WebworkerProvider.setHelperPath("/base/src/worker_wrapper.js");
-                WebworkerProvider.setUseHelper(false);
-                WebworkerProvider.setTransferOwnership(true);
-                //jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
-            });
+            // angular.module('ngWebworker').config(function(WebworkerProvider) {
+            //     WebworkerProvider.setHelperPath("/base/src/worker_wrapper.js");
+            //     WebworkerProvider.setUseHelper(false);
+            //     WebworkerProvider.setTransferOwnership(true);
+            // });
 
             // needed before inject()
             module('ngWebworker');
@@ -39,7 +38,8 @@ define([
         });
 
         describe('should convert a simple function to a webworker', function() {
-            it('with a promise', function(done) {
+            fit('with a promise', function(done) {
+                debugger;
                 var oWorker = Webworker.create(fib);
 
                 oWorker.run(12).then(function(result) {
@@ -345,6 +345,7 @@ define([
     });
 
     function fib(nth) {
+        debugger;
         var previous = 1, current = 1, temp, i;
 
         for (i = 3; i <= nth; i++) {

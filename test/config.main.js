@@ -8,8 +8,10 @@ requirejs.config({
     baseUrl: '/base',
     paths: {
         "src/ng-webworker": "src/ng-webworker",
-        "angularjs": "http://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular.min",
+        "angularjs": "http://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular",
         "angular-mocks": "http://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular-mocks"
+        // "angularjs": "src/angular.min",
+        // "angular-mocks": "src/angular-mocks"
     },
     shim: {
         "angularjs": {

@@ -49,10 +49,11 @@
                     aFuncParts,
                     strWorker,
                     blob,
+                    min_safe = {},
                     retWorker;
 
                 // only use this function inside the webworker
-                function _transferable_ (messageData) {
+                min_safe._transferable_ = function(messageData) {
                     var messageDataTransfers = [];
 
                     if (Object.prototype.toString.apply(messageData) != '[object Array]') {
@@ -66,7 +67,7 @@
                     });
 
                     return messageDataTransfers;
-                }
+                };
 
                 config = config || {};
 
@@ -98,11 +99,11 @@
                             strWorker += ";onmessage=function(e){" +
                                 ";var result = " + aFuncParts[1] + ".apply(null,e.data);" +
                                 // lets just try to make it transferable
-                                "postMessage(['"+ CONST_RETURN +"', result], !_async_ ? _transferable_(result) : [])" +
+                                "postMessage(['"+ CONST_RETURN +"', result], !_async_ ? self._transferable_(result) : [])" +
                             "};";
 
                             // add async and transferable function to worker
-                            strWorker += "var _async_ = "+ config.async +";" + _transferable_.toString();
+                            strWorker += "var _async_ = "+ config.async +";self._transferable_=" + min_safe._transferable_.toString();
 
                             if (win.Blob) {
                                 blob = new Blob([complete, notify, strWorker], {type: 'application/javascript'});
@@ -268,7 +269,7 @@
 
             function complete(mVal) {
                 // _transferable_ is added to the worker
-                postMessage(["complete", mVal], _transferable_(mVal))
+                postMessage(["complete", mVal], self._transferable_(mVal))
             }
             function notify(mVal) {
                 postMessage(["notice", mVal])

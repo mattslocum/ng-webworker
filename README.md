@@ -78,7 +78,7 @@ myWorker.run(1, 2).then(function(result) {
 }, null, function(progress) {
     // promise has a notification
     console.log(progress);
-);
+});
 ```
 
 ### Extra config

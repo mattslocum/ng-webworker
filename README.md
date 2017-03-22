@@ -1,39 +1,46 @@
-#ng-webworker [![Build Status](https://travis-ci.org/mattslocum/ng-webworker.svg?branch=master)](https://travis-ci.org/mattslocum/ng-webworker)
+# ng-webworker
+
+[![Build Status](https://travis-ci.org/mattslocum/ng-webworker.svg?branch=master)](https://travis-ci.org/mattslocum/ng-webworker)
 demo and more instructions: [http://mattslocum.github.io/ng-webworker/](http://mattslocum.github.io/ng-webworker/)
 
-###Installation
+### Installation
+
 ```bash
     # npm
     npm install ng-webworker --save
 ```
+
 ```bash    
     # bower
     bower install ng-webworker --save
 ```
 
-###Installation for Testing
+### Installation for Testing
 
     npm install
 
-###Run Tests
+### Run Tests
 
     npm test
 
-###Build
+### Build
 
     npm run build
 
 
-#Using ng-webworker
+# Using ng-webworker
+
 ## Basic Usage
 
-###Include the module
+### Include the module
+
 ```javascript
 angular.module('demo', ['ngWebworker'])
     .controller('demoCtrl', function($scope, Webworker) {});
 ```
 
-###Create a basic worker
+### Create a basic worker
+
 ```javascript
 // function that will become a worker
 function doubler(num) {
@@ -44,7 +51,8 @@ function doubler(num) {
 var myWorker = Webworker.create(doubler);
 ```
 
-###call the worker function
+### call the worker function
+
 ```javascript
 myWorker.run($scope.value).then(function(result) {
     alert("Answer: " + result);
@@ -53,11 +61,18 @@ myWorker.run($scope.value).then(function(result) {
 
 
 
-##Create an advanced worker
+## Create an advanced worker
+
 ### Async (notification) promises
-Lets say you want the notification support for webworkers for things like progress bars. There are times you do not want the return value to resolve the function. Maybe you are doing api requests or some other async tasks. An api of two functions is injected into the web worker. If an error is thrown, it will reject.
+
+Lets say you want the notification support for webworkers for things like progress bars.
+There are times you do not want the return value to resolve the function. Maybe you are
+doing api requests or some other async tasks. An api of two functions is injected into
+the web worker. If an error is thrown, it will reject.
+
 * complete - This will resolve the promise
 * notify - Send a notification of data via the promise
+
 ```javascript
 // function that will become a worker
 function async(first, second) {
@@ -82,7 +97,9 @@ myWorker.run(1, 2).then(function(result) {
 ```
 
 ### Extra config
+
 #### Global config
+
 ```javascript
 angular.module('ngWebworker').config(function(WebworkerProvider) {
     WebworkerProvider.setHelperPath("/base/src/worker_wrapper.js");
@@ -93,7 +110,11 @@ angular.module('ngWebworker').config(function(WebworkerProvider) {
 ```
 
 #### Instance Config
-If you want callback style functions on top of the promise or as an alternative style, you can pass callbacks into the config block. These callbacks only work if async is true. When async is false it uses basic resolves when the function returns.
+
+If you want callback style functions on top of the promise or as an alternative style,
+you can pass callbacks into the config block. These callbacks only work if async is true.
+When async is false it uses basic resolves when the function returns.
+
 ```javascript
 var myWorker = Webworker.create(async, {
     async: true, // prevent the function return from resolving the promise
@@ -107,5 +128,9 @@ var myWorker = Webworker.create(async, {
 ```
 
 ### IE workarounds
-IE strikes again. The way ng-webworker can take a function and turn it into a webworker is by transforming your function into a Blob and executing that blob in a web worker like you would an independant file. Unfortunatly, IE treats blobs as cross domain. The solution is to have a worker shell file that is loaded as a separate file. Your function is strigified and then messaged over to the worker file and evaled to make it behave just like the blobs did.
 
+IE strikes again. The way ng-webworker can take a function and turn it into a webworker is by
+transforming your function into a Blob and executing that blob in a web worker like you would
+an independant file. Unfortunatly, IE treats blobs as cross domain. The solution is to have a
+worker shell file that is loaded as a separate file. Your function is strigified and then
+messaged over to the worker file and evaled to make it behave just like the blobs did.

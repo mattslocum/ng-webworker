@@ -8,29 +8,22 @@ requirejs.config({
     baseUrl: '/base',
     paths: {
         "src/ng-webworker": "src/ng-webworker",
-        "angularjs": "http://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular",
+        "angular": "http://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular",
         "angular-mocks": "http://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular-mocks"
         // "angularjs": "src/angular.min",
         // "angular-mocks": "src/angular-mocks"
     },
     shim: {
-        "angularjs": {
-            exports: "angular",
-            deps: [
-            ]
-        },
         "angular-mocks": {
-            exports: "angular",
             deps: [
-                "angularjs"
+                "angular"
             ]
         },
         "src/ng-webworker": {
             deps: [
-                "angularjs"
+                "angular"
             ]
         }
-
     },
 
     // ask Require.js to load these files (all our tests)
@@ -40,4 +33,4 @@ requirejs.config({
     callback: window.__karma__.start
 });
 
-require(["angular-mocks"]);
+require(["angular", "angular-mocks"]);

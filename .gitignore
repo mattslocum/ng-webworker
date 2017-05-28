@@ -1,2 +1,4 @@
 .idea
 node_modules
+
+src/ng-webworker.js

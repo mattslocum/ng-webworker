@@ -38,8 +38,7 @@ define([
         });
 
         describe('should convert a simple function to a webworker', function() {
-            fit('with a promise', function(done) {
-                debugger;
+            it('with a promise', function(done) {
                 var oWorker = Webworker.create(fib);
 
                 oWorker.run(12).then(function(result) {
@@ -345,7 +344,6 @@ define([
     });
 
     function fib(nth) {
-        debugger;
         var previous = 1, current = 1, temp, i;
 
         for (i = 3; i <= nth; i++) {

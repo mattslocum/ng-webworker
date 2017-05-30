@@ -10,16 +10,21 @@ define([
     // uncomment to make it easier to debug
 //    jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
 
+    // set the global helperPath that Karma uses
+    ngWebworker.NgWebWorker.helperPath = "base/src/" + ngWebworker.NgWebWorker.helperPath;
+
+    // https://stackoverflow.com/a/5950020/1314079
+    var __originalNavigator = navigator;
+    var strUserAgent = navigator.userAgent;
+    navigator = new Object();
+    navigator.__proto__ = __originalNavigator;
+    navigator.__defineGetter__('userAgent', function () { return strUserAgent; });
+
+
     describe("ngWebworker", function() {
         var Webworker, $q, $rootScope;
 
         beforeEach(function() {
-            // angular.module('ngWebworker').config(function(WebworkerProvider) {
-            //     WebworkerProvider.setHelperPath("/base/src/worker_wrapper.js");
-            //     WebworkerProvider.setUseHelper(false);
-            //     WebworkerProvider.setTransferOwnership(true);
-            // });
-
             // needed before inject()
             module('ngWebworker');
         });
@@ -159,6 +164,59 @@ define([
                     $rootScope.$digest();
                 }, 100);
 
+            });
+
+            it('with events', function(done) {
+                var iMessages = 3,
+                    oConfig = {
+                        onReturn: function(result) {
+                            expect(result).toEqual(144);
+                            // $q needs a digest
+                            $rootScope.$digest();
+                        },
+                        onNotice: function(message) {
+                            expect(message).toEqual(fib(iMessages++));
+                        },
+                        onComplete: jasmine.createSpy('spy')
+                    },
+                    oWorker;
+
+                spyOn(oConfig, 'onNotice').and.callThrough();
+
+                oWorker = Webworker.create(varFib, oConfig);
+
+                oWorker.run(12).then(function(result) {
+                    expect(result).toEqual(144);
+                    expect(oConfig.onNotice).toHaveBeenCalled();
+                    expect(oConfig.onComplete).not.toHaveBeenCalled();
+                    done();
+                });
+            });
+        });
+
+        describe('should use worker helper for IE', function () {
+            beforeEach(function() {
+                strUserAgent = 'MSIE';
+            });
+
+            afterEach(function() {
+                strUserAgent = __originalNavigator.userAgent;
+            });
+
+            it('with promise', function (done) {
+                var oWorker = Webworker.create(varFib);
+
+                oWorker.run(12).then(function(result) {
+                    expect(result).toEqual(144);
+                    done();
+                });
+
+                // $q needs a digest so lets call one after the worker should be finished
+                // a different test will test event functions
+                // This isn't needed in a real angular app.
+                setTimeout(function() {
+                    $rootScope.$digest();
+                }, 100);
             });
 
             it('with events', function(done) {

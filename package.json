@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@types/angular": "^1.6.17",
+    "@types/jquery": "^1.10.31",
     "gulp": "^3.9.1",
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^1.5.3",

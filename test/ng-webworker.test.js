@@ -4,8 +4,9 @@
  */
 define([
     'src/ng-webworker',
+    'test/mockQ',
     "angular-mocks"
-], function(ngWebworker) {
+], function(ngWebworker, mockQ) {
     'use strict';
     // uncomment to make it easier to debug
 //    jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
@@ -13,26 +14,32 @@ define([
     // set the global helperPath that Karma uses
     ngWebworker.NgWebWorker.helperPath = "base/src/" + ngWebworker.NgWebWorker.helperPath;
 
-    // https://stackoverflow.com/a/5950020/1314079
-    var __originalNavigator = navigator;
+    // https://stackoverflow.com/a/26888312/1314079
     var strUserAgent = navigator.userAgent;
-    navigator = new Object();
-    navigator.__proto__ = __originalNavigator;
-    navigator.__defineGetter__('userAgent', function () { return strUserAgent; });
-
+    var userAgentProp = { get: function () { return strUserAgent; } };
+    try {
+        Object.defineProperty(window.navigator, 'userAgent', userAgentProp);
+    } catch (e) {
+        window.navigator = Object.create(navigator, {
+            userAgent: userAgentProp
+        });
+    }
 
     describe("ngWebworker", function() {
-        var Webworker, $q, $rootScope;
+        var Webworker;
 
         beforeEach(function() {
             // needed before inject()
-            module('ngWebworker');
+            module('ngWebworker', function($provide) {
+                // Using a mock $q so we don't need a digest to trigger the promises.
+                // Using constant instead of service because they are the same under the hood
+                // for angular, and service requires a function that returns the mock.
+                $provide.constant('$q', mockQ);
+            });
         });
 
-        beforeEach(inject(function(_Webworker_, _$q_, _$rootScope_) {
+        beforeEach(inject(function(_Webworker_) {
             Webworker = _Webworker_;
-            $q = _$q_;
-            $rootScope = _$rootScope_;
         }));
 
         it('should register ngWebworker as a module and service', function() {
@@ -50,14 +57,6 @@ define([
                     expect(result).toEqual(144);
                     done();
                 });
-
-                // $q needs a digest so lets call one after the worker should be finished
-                // a different test will test event functions
-                // This isn't needed in a real angular app.
-                setTimeout(function() {
-                    $rootScope.$digest();
-                }, 500);
-
             });
 
             it('with events', function(done) {
@@ -65,8 +64,6 @@ define([
                     oConfig = {
                         onReturn: function(result) {
                             expect(result).toEqual(144);
-                            // $q needs a digest
-                            $rootScope.$digest();
                         },
                         onNotice: function(message) {
                             expect(message).toEqual(fib(iMessages++));
@@ -98,14 +95,6 @@ define([
                     expect(result).toEqual(8);
                     done();
                 });
-
-                // $q needs a digest so lets call one after the worker should be finished
-                // a different test will test event functions
-                // This isn't needed in a real angular app.
-                setTimeout(function() {
-                    $rootScope.$digest();
-                }, 100);
-
             });
 
             it('with events', function(done) {
@@ -113,8 +102,6 @@ define([
                     oConfig = {
                         onReturn: function(result) {
                             expect(result).toEqual(144);
-                            // $q needs a digest
-                            $rootScope.$digest();
                         },
                         onNotice: function(message) {
                             expect(message).toEqual(fib(iMessages++));
@@ -156,14 +143,6 @@ define([
                     expect(result).toEqual(144);
                     done();
                 });
-
-                // $q needs a digest so lets call one after the worker should be finished
-                // a different test will test event functions
-                // This isn't needed in a real angular app.
-                setTimeout(function() {
-                    $rootScope.$digest();
-                }, 100);
-
             });
 
             it('with events', function(done) {
@@ -171,8 +150,6 @@ define([
                     oConfig = {
                         onReturn: function(result) {
                             expect(result).toEqual(144);
-                            // $q needs a digest
-                            $rootScope.$digest();
                         },
                         onNotice: function(message) {
                             expect(message).toEqual(fib(iMessages++));
@@ -195,12 +172,15 @@ define([
         });
 
         describe('should use worker helper for IE', function () {
+            var originalUserAgent;
+
             beforeEach(function() {
+                originalUserAgent = navigator.userAgent;
                 strUserAgent = 'MSIE';
             });
 
             afterEach(function() {
-                strUserAgent = __originalNavigator.userAgent;
+                strUserAgent = originalUserAgent;
             });
 
             it('with promise', function (done) {
@@ -210,13 +190,6 @@ define([
                     expect(result).toEqual(144);
                     done();
                 });
-
-                // $q needs a digest so lets call one after the worker should be finished
-                // a different test will test event functions
-                // This isn't needed in a real angular app.
-                setTimeout(function() {
-                    $rootScope.$digest();
-                }, 100);
             });
 
             it('with events', function(done) {
@@ -224,8 +197,6 @@ define([
                     oConfig = {
                         onReturn: function(result) {
                             expect(result).toEqual(144);
-                            // $q needs a digest
-                            $rootScope.$digest();
                         },
                         onNotice: function(message) {
                             expect(message).toEqual(fib(iMessages++));
@@ -256,8 +227,6 @@ define([
                     onReturn: function() {},
                     onComplete: function(result) {
                         expect(result).toEqual(iCalls);
-                        // $q needs a digest
-                        $rootScope.$digest();
                     },
                     onNotice: function(message) {
                         expect(message).toEqual(iNotices++);
@@ -285,14 +254,13 @@ define([
             }, {async: true});
 
             oWorker.run().then(function() {
+                debugger;
                 expect("").toEqual("This shouldn't happen");
             }).catch(function() {
                 done();
             });
 
             oWorker.stop();
-
-            $rootScope.$digest();
         });
 
         describe('should load an external webworker', function() {
@@ -303,13 +271,6 @@ define([
                     expect(result).toEqual(144);
                     done();
                 });
-
-                // $q needs a digest so lets call one after the worker should be finished
-                // a different test will test event functions
-                // This isn't needed in a real angular app.
-                setTimeout(function() {
-                    $rootScope.$digest();
-                }, 100);
             });
 
             it('with async events', function(done) {
@@ -320,8 +281,6 @@ define([
                         async: true,
                         onComplete: function(result) {
                             expect(result).toEqual(iCalls);
-                            // $q needs a digest
-                            $rootScope.$digest();
                         },
                         onNotice: function(message) {
                             expect(message).toEqual(iNotices++);
@@ -359,18 +318,15 @@ define([
                     imgData[pixel + 3] = 255;
                 }
                 // image should be all red
-
-                // phantomjs doesn't seem to support transfer from the webworker
-                // This makes me nervous that there could be a bug, but I'm
-                // blaming it on phamtomjs for now
-                return (navigator.userAgent.indexOf("PhantomJS/1.9.8") == -1) ?
-                    imgData.buffer :
-                    imgData;
+                return imgData.buffer;
             });
 
 
             oWorker.run(imgData.data.buffer).then(function(imgDataBuffer) {
                 var imgDataResult = new Uint8Array(imgDataBuffer);
+
+                // make sure the below loop is going to run
+                expect(imgDataResult.length).toEqual(40000);
 
                 for (var pixel = 0; pixel < imgDataResult.length; pixel += 4) {
                     expect(imgDataResult[pixel]).toEqual(255);
@@ -380,24 +336,10 @@ define([
                 }
 
                 // See if the old data is gone because it was transferred
-                if (navigator.userAgent.indexOf("PhantomJS/1.9.8") == -1 &&
-                    navigator.userAgent.indexOf('MSIE') == -1 &&
-                    navigator.appVersion.indexOf('Trident/') == -1 &&
-                    !oWorker.config.useHelper)
-                {
-                    expect(imgData.data.length).toEqual(0);
-                }
+                expect(imgData.data.length).toEqual(0);
 
                 done();
             });
-
-
-            // $q needs a digest so lets call one after the worker should be finished
-            // a different test will test event functions
-            // This isn't needed in a real angular app.
-            setTimeout(function() {
-                $rootScope.$digest();
-            }, 1000);
         });
     });
 

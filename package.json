@@ -12,6 +12,7 @@
     "type": "git",
     "url": "https://github.com/mattslocum/ng-webworker.git"
   },
+  "main": "src/ng-webworker.js",
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-rename": "^1.2.2",

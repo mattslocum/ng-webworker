@@ -23,6 +23,11 @@ requirejs.config({
             deps: [
                 "angular"
             ]
+        },
+        "src/ng-webworker.min": {
+            deps: [
+                "angular"
+            ]
         }
     },
 

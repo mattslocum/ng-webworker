@@ -2,3 +2,4 @@
 node_modules
 
 src/ng-webworker.js
+src/angularjs.js

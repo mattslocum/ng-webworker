@@ -2,7 +2,7 @@
   "name": "ng-webworker",
   "author": "Matt Slocum (https://github.com/mattslocum/ng-webworker)",
   "homepage": "https://github.com/mattslocum/ng-webworker",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "ng-webworker creates dynamic webworkers so angular apps can be multi-threaded.",
   "scripts": {
     "build": "tsc && gulp build",
@@ -16,6 +16,8 @@
   "devDependencies": {
     "@types/angular": "^1.6.17",
     "@types/jquery": "^1.10.31",
+    "core-js": "^2.4.1",
+    "es6-promise": "^4.1.1",
     "gulp": "^3.9.1",
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^1.5.3",

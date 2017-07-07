@@ -4,9 +4,10 @@
  */
 define([
     'src/ng-webworker',
-    'test/mockQ',
-    "angular-mocks"
-], function(ngWebworker, mockQ) {
+    'src/angularjs',
+    'angular-mocks',
+    'node_modules/es6-promise/dist/es6-promise.auto'
+], function(ngWebworker) {
     'use strict';
     // uncomment to make it easier to debug
 //    jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
@@ -29,24 +30,21 @@ define([
         var Webworker;
 
         beforeEach(function() {
-            // needed before inject()
-            module('ngWebworker', function($provide) {
-                // Using a mock $q so we don't need a digest to trigger the promises.
-                // Using constant instead of service because they are the same under the hood
-                // for angular, and service requires a function that returns the mock.
-                $provide.constant('$q', mockQ);
-            });
+            Webworker = new ngWebworker.NgWebWorker.NgWebWorkerService();
         });
 
-        beforeEach(inject(function(_Webworker_) {
-            Webworker = _Webworker_;
-        }));
-
-        it('should register ngWebworker as a module and service', function() {
-            expect(ngWebworker).not.toBeNull();
-            expect(ngWebworker).toBeDefined();
-            expect(Webworker).not.toBeNull();
+        it('should export ngWebworker NgWebWorkerService', function() {
             expect(Webworker).toBeDefined();
+        });
+
+        it('should register ngWebworker as an angularjs module and service', function() {
+            angular.mock.module('ngWebworker');
+
+            inject(function(Webworker) {
+                expect(Webworker).not.toBeNull();
+                expect(Webworker).toBeDefined();
+                expect(Webworker.create).toBeDefined();
+            });
         });
 
         describe('should convert a simple function to a webworker', function() {

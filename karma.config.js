@@ -15,6 +15,7 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'test/config.main.js',
+      {pattern: 'node_modules/es6-promise/dist/*', included: false},
       {pattern: 'src/*.js', included: false},
       {pattern: 'test/**/*.js', included: false}
     ],

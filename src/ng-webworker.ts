@@ -1,4 +1,3 @@
-import {IDeferred, IQService} from "angular";
 
 export module NgWebWorker {
 
@@ -6,9 +5,6 @@ export module NgWebWorker {
     declare function postMessage(data : any, transfer ?: ArrayBuffer[]) : void;
     // hack to keep WebWorkerHelper.complete happy
     declare let _transferable_: Function;
-
-    // hack for us to use angular, but not require it since this is a library.
-    declare let angular: any;
 
     const CONST_FUNCTION : string = "function",
         CONST_RETURN : string = "return",
@@ -79,7 +75,7 @@ export module NgWebWorker {
 
     }
 
-    class NgWebworker {
+    export class NgWebworker {
         // We are using a 3rd party webworker maintained by someone else
         private _3rdParty : boolean = false;
 
@@ -94,7 +90,6 @@ export module NgWebWorker {
         private _helperFunc : string;
 
         constructor(
-            private $q : IQService,
             rawWorker : Function|string,
             private config : NgWebWorkerConfig = {}
         ) {
@@ -133,18 +128,16 @@ export module NgWebWorker {
                 this.config.onError = this.config.onerror;
             }
 
-            this.config = angular.extend({
-                //setup events so they will always be there
-                onMessage: noop,
-                onError: noop,
-                onReturn: noop,
-                onComplete: noop,
-                onNotice: noop,
+            //setup events so they will always be there
+            this.config.onMessage =   this.config.onMessage || noop;
+            this.config.onError =     this.config.onError || noop;
+            this.config.onReturn =    this.config.onReturn || noop;
+            this.config.onComplete =  this.config.onComplete || noop;
+            this.config.onNotice =    this.config.onNotice || noop;
 
-                async: false, // if set, don't resolve promise on function complete.
-                helperPath: helperPath,
-                transferOwnership: true
-            }, this.config);
+            this.config.async =       this.config.async || false; // if set, don't resolve promise on function complete.
+            this.config.helperPath =  this.config.helperPath || helperPath;
+            this.config.transferOwnership = this.config.transferOwnership || true;
         }
 
         private buildWorkerBlob(rawWorker : string|Function) : string {
@@ -183,7 +176,7 @@ export module NgWebWorker {
                     // don't catch. Lets make the implementer catch. We shouldn't even get here.
                     // try {
                     worker = URL.createObjectURL(blob);
-                        this._strWorkerObjUrl = worker;
+                    this._strWorkerObjUrl = worker;
                     // } catch (e) {}
                 }
 
@@ -206,34 +199,34 @@ export module NgWebWorker {
 
         //TODO: save copy of promise/worker pair so we can terminate.
         //      aka: make this re-runnable
-        public run(...args : any[]) {
-            let deferred : IDeferred<any> = this.$q.defer(),
-                messageData : any;
+        public run(...args : any[]) : Promise<any> {
+            let workerPromise : Promise<any> = new Promise((resolve, reject) => {
+                let messageData : any;
 
-            this.bindEvents(deferred);
+                this.bindEvents(resolve, reject);
+
+                if (this._3rdParty || !this._useHelper) {
+                    messageData = args;
+                } else {
+                    messageData = {
+                        // send the stringified function to the helper for it to reconstruct.
+                        fn: this._helperFunc,
+                        args: args
+                    };
+                }
+
+                this._worker.postMessage(messageData, this.doTransferableMessage(messageData));
+            });
 
             if (this._strWorkerObjUrl) {
-                deferred.promise.finally(() => {
-                    // Every time run happens on a dynamic web worker it
-                    // creates a new web worker to prevent a thread leak,
-                    // a worker will only last once
-                    this.terminate();
-                });
+                // Every time run happens on a dynamic web worker it
+                // creates a new web worker to prevent a thread leak,
+                // a worker will only last once
+                workerPromise.then(this.terminate.bind(this));
+                workerPromise.catch(this.terminate.bind(this));
             }
 
-            if (this._3rdParty || !this._useHelper) {
-                messageData = args;
-            } else {
-                messageData = {
-                    // send the stringified function to the helper for it to reconstruct.
-                    fn: this._helperFunc,
-                    args: args
-                };
-            }
-
-            this._worker.postMessage(messageData, this.doTransferableMessage(messageData));
-
-            return deferred.promise;
+            return workerPromise;
         }
 
         public stop() : void {
@@ -249,13 +242,13 @@ export module NgWebWorker {
             }
         }
 
-        private doTransferableMessage(messageData : any) {
+        private doTransferableMessage(messageData : any[]) {
             // FUTURE: CanvasProxy and MessagePort when browsers support it.
             let messageDataTransfers : any[] = [];
 
             // the worker_wrapper helper doesn't support transfers right now
-            if (this.config.transferOwnership && !this._useHelper) {
-                angular.forEach(messageData, (data : ArrayBuffer) => {
+            if (this.config.transferOwnership && !this._useHelper && Array.isArray(messageData)) {
+                messageData.forEach((data : ArrayBuffer) => {
                     if (data instanceof ArrayBuffer) {
                         messageDataTransfers.push(data);
                     }
@@ -265,31 +258,26 @@ export module NgWebWorker {
             return messageDataTransfers;
         }
 
-        private bindEvents(deferred : IDeferred<any>) : void {
+        private bindEvents(resolve : any, reject : any) : void {
             this._worker.onmessage = (event : MessageEvent) => {
                 let strType : string,
                     data : any = event.data;
 
                 if (this._3rdParty && !this.config.async) {
-                    deferred.resolve(data);
+                    resolve(data);
                 } else {
                     strType = event.data.shift();
                     data = event.data[0];
 
                     this.config.onMessage(event);
 
-                    // don't notify if we are complete or return
-                    if (strType !== CONST_COMPLETE && strType !== CONST_RETURN) {
-                        deferred.notify(data);
-                    }
-
                     if (strType === CONST_RETURN) {
                         if (!this.config.async) {
-                            deferred.resolve(data);
+                            resolve(data);
                         }
                         this.config.onReturn(data);
                     } else if (strType === CONST_COMPLETE) {
-                        deferred.resolve(data);
+                        resolve(data);
                         this.config.onComplete(data);
                     } else if (strType === CONST_NOTICE) {
                         this.config.onNotice(data);
@@ -298,25 +286,18 @@ export module NgWebWorker {
             };
 
             this._worker.onerror = (error : ErrorEvent) => {
-                deferred.reject(error);
+                reject(error);
             };
         }
     }
 
     export class NgWebWorkerService {
-        static $inject = [ '$q' ];
-
-        constructor(private $q : IQService) {}
-
         public create(
             rawWorker : Function|string,
             config : NgWebWorkerConfig = {}
         ) : NgWebworker {
-            return new NgWebworker(this.$q, rawWorker, config);
+            return new NgWebworker(rawWorker, config);
         }
     }
-
-    angular.module('ngWebworker', [])
-        .service('Webworker', NgWebWorkerService);
 
 }

@@ -3,8 +3,6 @@ var KarmaServer = require('karma').Server;
 var header = require('gulp-header');
 var uglify = require('gulp-uglify');
 
-gulp.task('default', ['watch']);
-
 gulp.task('build', function(done) {
     var pkg = require('./package.json');
     var banner = [

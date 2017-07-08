@@ -15,6 +15,7 @@
     "type": "git",
     "url": "https://github.com/mattslocum/ng-webworker.git"
   },
+  "main": "src/ng-webworker.js",
   "devDependencies": {
     "@types/angular": "^1.6.17",
     "@types/jquery": "^1.10.31",

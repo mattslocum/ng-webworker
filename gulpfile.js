@@ -2,8 +2,6 @@ var gulp = require('gulp');
 var KarmaServer = require('karma').Server;
 var header = require('gulp-header');
 var uglify = require('gulp-uglify');
-var rename = require("gulp-rename");
-
 
 gulp.task('default', ['watch']);
 
@@ -17,18 +15,11 @@ gulp.task('build', function(done) {
         ' * @license <%= pkg.license %>',
         ' */',
         ''].join('\n');
-    
-    return gulp.src(['src/ng-webworker.js', 'src/worker_wrapper.js'])
-        .pipe(uglify({
-            mangle: {
-                except: ['notify', 'complete', '_transferable_']
-            }
-        }))
+
+    return gulp.src(['src/ng-webworker.js', 'src/worker_wrapper.js', 'src/angularjs.js'])
+        .pipe(uglify())
         .pipe(header(banner, { pkg : pkg } ))
-        .pipe(rename({
-            suffix: ".min"
-        }))
-        .pipe(gulp.dest('src'));
+        .pipe(gulp.dest('dist'));
 });
 
 
